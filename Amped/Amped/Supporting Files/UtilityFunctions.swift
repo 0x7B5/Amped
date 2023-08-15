@@ -17,10 +17,8 @@ public func openDirections(currentStation: Station) {
     destinationItem.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
 }
 
-class LocationViewModel: ObservableObject {
-private var locationManager = CLLocationManager()
-    
-    func calculateWalkingTime(to destinationCoordinate: CLLocationCoordinate2D, completion: @escaping (TimeInterval?) -> Void) {
+func calculateWalkingTime(locationManager: CLLocationManager, to destinationCoordinate: CLLocationCoordinate2D, completion: @escaping (TimeInterval?) -> Void) {
+    DispatchQueue.global().async {
         guard let userLocation = locationManager.location else {
             completion(nil)
             return
@@ -46,21 +44,10 @@ private var locationManager = CLLocationManager()
     }
 }
 
-public func calculateWalkingTime() {
-    locationViewModel.calculateWalkingTime(to: CLLocationCoordinate2D(latitude: currentStation.location.lat, longitude: currentStation.location.lng)) { time in
-        walkingTime = time
-    }
-}
 public func formatTime(_ time: TimeInterval) -> String {
     let formatter = DateComponentsFormatter()
     formatter.unitsStyle = .positional
     formatter.allowedUnits = [.minute]
     return formatter.string(from: time) ?? ""
 }
-
-
-//public func invalidateDataRefreshTimer() {
-//    dataRefreshTimer?.invalidate()
-//    dataRefreshTimer = nil
-//}
 

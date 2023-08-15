@@ -14,6 +14,11 @@ struct StationMapView: View {
     @State private var ebikeOnlyCount: Int = 0
     @State private var emptyCount: Int = 0
     
+    @State private var walkingTime: TimeInterval? = nil
+    @State private var isDataLoadingInProgress: Bool = false
+    private let uiUpdateSemaphore = DispatchSemaphore(value: 1)
+
+    
     @State private var annotations: [StationAnnotation] = []
     @State private var isSettingsSheetVisible: Bool = false
     @State private var isStationSheetVisible: Bool = false
@@ -28,7 +33,6 @@ struct StationMapView: View {
     
     @State private var isLoading: Bool = false
     @StateObject private var locationManager = LocationManager()
-    @StateObject private var locationViewModel = LocationViewModel()
     
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 40.7831, longitude: -73.9712),
@@ -50,9 +54,7 @@ struct StationMapView: View {
                     if(stationAnnotation.station.ebikesAvailable > 0 || (showEmptyStations && stationAnnotation.station.ebikesAvailable == 0)) {
                         PinIcon(numEbikesAvailable: stationAnnotation.station.ebikesAvailable)
                             .onTapGesture {
-                                currentStation = stationAnnotation.station;
-                                calculateWalkingTime();
-                                isStationSheetVisible = true
+                                handleTap(for: stationAnnotation.station)
                             }
                     }
                 }
@@ -192,51 +194,85 @@ struct StationMapView: View {
         .partialSheet(isPresented: $isInfoSheetVisible) {
             AppInfo()
         }
+        .onDisappear {
+            closePartialSheet()
+        }
         .partialSheet(isPresented: $isSettingsSheetVisible) {
             Settings(showEmptyStations: $showEmptyStations)
         }
+        .onDisappear {
+            closePartialSheet()
+        }
         .partialSheet(isPresented: $isStationSheetVisible) {
-            StationInfo(currentStation: currentStation, isStationSheetVisible: $isStationSheetVisible)
+            StationInfo(currentStation: currentStation, walkingTime: $walkingTime, isStationSheetVisible: $isStationSheetVisible)
+        }
+        .onDisappear {
+            closePartialSheet()
         }
     }
     
+    func handleTap(for station: Station) {
+       currentStation = station
+       calculateWalkingTime(locationManager: locationManager.locationManager, to: CLLocationCoordinate2D(latitude: currentStation.location.lat, longitude: currentStation.location.lng)) { time in
+          walkingTime = time ?? 0
+        isStationSheetVisible = true
+       }
+    }
+    
     func loadData(silently: Bool = false) {
-        print("Loading data")
-        
-        DispatchQueue.global().async { // Perform the task on a background thread
-            
-            if !silently {
-                DispatchQueue.main.async {
-                    isLoading = true
-                }
-            }
-            
+        let startTime = Date()
+        let minimumLoadingDisplayDuration: TimeInterval = 1.0 // Set this to your desired minimum time in seconds
+
+        // If it's not a silent load, we start by setting the loading indicator
+        if !silently {
+            isLoading = true
+        }
+
+        // Ensure loadData isn't concurrently being accessed
+        uiUpdateSemaphore.wait()
+
+        DispatchQueue.global().async {
             let api = CitibikeAPI()
-            
             api.fetchStations { stations in
-                
                 var categories = api.categorizeStations(stations: stations)
-                
                 let annotationsToAdd = categories.emptyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .empty, station: $0) }
-                + categories.ebikeOnlyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .ebikeOnly, station: $0)  }
-                
-                DispatchQueue.main.async { // Switching to main thread for UI updates
-                    if !silently {
-                        isLoading = false
+                + categories.ebikeOnlyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .ebikeOnly, station: $0) }
+
+                let elapsed = Date().timeIntervalSince(startTime)
+                if elapsed < minimumLoadingDisplayDuration {
+                    let remaining = minimumLoadingDisplayDuration - elapsed
+                    DispatchQueue.main.asyncAfter(deadline: .now() + remaining) {
+                        self.updateUIAfterLoading(annotationsToAdd: annotationsToAdd, categories: categories, silently: silently)
+                        self.uiUpdateSemaphore.signal()
                     }
-                    
-                    annotations = annotationsToAdd
-                    ebikeOnlyCount = categories.ebikeOnlyStations.count
-                    emptyCount = categories.emptyStations.count
-                    self.lastUpdateTime = Date()
-                    
-                    // Uncomment if you need this:
-                    // if let userLocation = locationManager.location {
-                    //     updateRegion(to: userLocation.coordinate)
-                    // }
+                } else {
+                    DispatchQueue.main.async {
+                        self.updateUIAfterLoading(annotationsToAdd: annotationsToAdd, categories: categories, silently: silently)
+                        self.uiUpdateSemaphore.signal()
+                    }
                 }
             }
         }
+    }
+    
+    func closePartialSheet() {
+        // Try to decrement the semaphore. If the current value is zero, this will block until the semaphore is incremented.
+        uiUpdateSemaphore.wait()
+
+        // You can include other cleanup tasks here if needed.
+
+        // Release the semaphore.
+        uiUpdateSemaphore.signal()
+    }
+    
+    private func updateUIAfterLoading(annotationsToAdd: [StationAnnotation], categories: (emptyStations: [Station], ebikeOnlyStations: [Station]), silently: Bool) {
+        if !silently {
+            isLoading = false
+        }
+        annotations = annotationsToAdd
+        ebikeOnlyCount = categories.ebikeOnlyStations.count
+        emptyCount = categories.emptyStations.count
+        self.lastUpdateTime = Date()
     }
     
     func updateRegion(to coordinate: CLLocationCoordinate2D) {

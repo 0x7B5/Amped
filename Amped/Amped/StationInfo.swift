@@ -12,7 +12,7 @@ import SwiftUI
 struct StationInfo: View {
     
     var currentStation: Station
-    @State private var walkingTime: TimeInterval? = nil
+    @Binding var walkingTime: TimeInterval?
     @Binding var isStationSheetVisible: Bool
     
     var body: some View {

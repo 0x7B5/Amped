@@ -20,7 +20,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 }
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private var locationManager = CLLocationManager()
+    public var locationManager = CLLocationManager()
     @Published var location: CLLocation?
     
     override init() {
