@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B13628C62A8ACE8300E705C3 /* StationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13628C52A8ACE8300E705C3 /* StationMapView.swift */; };
+		B13628C82A8C06EA00E705C3 /* PinIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13628C72A8C06EA00E705C3 /* PinIcon.swift */; };
+		B13628CA2A8C075A00E705C3 /* StationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13628C92A8C075A00E705C3 /* StationInfo.swift */; };
+		B13628CD2A8C081B00E705C3 /* UtilityFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13628CC2A8C081B00E705C3 /* UtilityFunctions.swift */; };
+		B13628CF2A8C095200E705C3 /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13628CE2A8C095200E705C3 /* AppInfo.swift */; };
 		CC136F2C2A82D5A800763CE1 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC136F2B2A82D5A800763CE1 /* Launch Screen.storyboard */; };
 		CC136F2E2A82E5E300763CE1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC136F2D2A82E5E300763CE1 /* GoogleService-Info.plist */; };
 		CC136F312A82E64200763CE1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CC136F302A82E64200763CE1 /* FirebaseAnalytics */; };
@@ -20,6 +25,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B13628C52A8ACE8300E705C3 /* StationMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationMapView.swift; sourceTree = "<group>"; };
+		B13628C72A8C06EA00E705C3 /* PinIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinIcon.swift; sourceTree = "<group>"; };
+		B13628C92A8C075A00E705C3 /* StationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationInfo.swift; sourceTree = "<group>"; };
+		B13628CC2A8C081B00E705C3 /* UtilityFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityFunctions.swift; sourceTree = "<group>"; };
+		B13628CE2A8C095200E705C3 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfo.swift; sourceTree = "<group>"; };
 		CC136F2B2A82D5A800763CE1 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		CC136F2D2A82E5E300763CE1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CC97CD812A81F9C6008227D4 /* Amped.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Amped.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +54,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B13628CB2A8C080800E705C3 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				B13628CC2A8C081B00E705C3 /* UtilityFunctions.swift */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		CC97CD782A81F9C6008227D4 = {
 			isa = PBXGroup;
 			children = (
@@ -65,6 +83,11 @@
 			children = (
 				CC97CD842A81F9C6008227D4 /* AmpedApp.swift */,
 				CC97CD862A81F9C6008227D4 /* ContentView.swift */,
+				B13628C92A8C075A00E705C3 /* StationInfo.swift */,
+				B13628CE2A8C095200E705C3 /* AppInfo.swift */,
+				B13628C52A8ACE8300E705C3 /* StationMapView.swift */,
+				B13628CB2A8C080800E705C3 /* Supporting Files */,
+				B13628C72A8C06EA00E705C3 /* PinIcon.swift */,
 				CC136F2B2A82D5A800763CE1 /* Launch Screen.storyboard */,
 				CC97CD882A81F9C7008227D4 /* Assets.xcassets */,
 				CC97CD922A820144008227D4 /* CitibikeAPIManager.swift */,
@@ -165,6 +188,11 @@
 			files = (
 				CC97CD872A81F9C6008227D4 /* ContentView.swift in Sources */,
 				CC97CD932A820144008227D4 /* CitibikeAPIManager.swift in Sources */,
+				B13628CA2A8C075A00E705C3 /* StationInfo.swift in Sources */,
+				B13628C82A8C06EA00E705C3 /* PinIcon.swift in Sources */,
+				B13628C62A8ACE8300E705C3 /* StationMapView.swift in Sources */,
+				B13628CF2A8C095200E705C3 /* AppInfo.swift in Sources */,
+				B13628CD2A8C081B00E705C3 /* UtilityFunctions.swift in Sources */,
 				CC97CD852A81F9C6008227D4 /* AmpedApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

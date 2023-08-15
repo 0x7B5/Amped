@@ -73,9 +73,12 @@ struct ContentView: View {
             Map(coordinateRegion: $region, showsUserLocation: true, annotationItems: annotations) { stationAnnotation -> MapAnnotation in
                 MapAnnotation(coordinate: stationAnnotation.coordinate){
                     if(stationAnnotation.station.ebikesAvailable > 0 || (showEmptyStations && stationAnnotation.station.ebikesAvailable == 0)) {
-                        Button(action: {currentStation = stationAnnotation.station; calculateWalkingTime(); isStationSheetVisible = true}) {
-                            PinIcon(numEbikesAvailable: stationAnnotation.station.ebikesAvailable)
-                        }
+                        PinIcon(numEbikesAvailable: stationAnnotation.station.ebikesAvailable)
+                            .onTapGesture {
+                                currentStation = stationAnnotation.station;
+                                calculateWalkingTime();
+                                isStationSheetVisible = true
+                            }
                     }
                 }
 //                switch stationAnnotation.type {
@@ -249,10 +252,23 @@ Ebikes are typically 17 cents/min. Non-ebikes are free for members, up to 45 min
              }
         .partialSheet(isPresented: $isStationSheetVisible) {
             VStack {
-                Text(currentStation.stationName)
-                    .fontWeight(.bold)
-                    .font(.title)
-                    .padding(.top)
+                ZStack(alignment: .top) {
+                    Text(currentStation.stationName)
+                        .fontWeight(.bold)
+                        .font(.title)
+                        .padding(.top)
+                        .multilineTextAlignment(.center)
+                    HStack {
+                        Spacer()
+                        Image(systemName: "x.circle.fill")
+                            .foregroundColor(.gray)
+                            .font(.title)
+                            .onTapGesture {
+                                isStationSheetVisible = false
+                            }
+                            .offset(x: -10, y: -20)
+                    }
+                }
                 HStack {
                     VStack {
                         HStack {
@@ -279,8 +295,10 @@ Ebikes are typically 17 cents/min. Non-ebikes are free for members, up to 45 min
                             .font(.caption)
                     }
                 }
-                Button("Get Directions") {
+                Button {
                     openDirections()
+                } label: {
+                    Text("Get Directions").bold()
                 }
                 .buttonStyle(DirectionsButton())
             }
@@ -344,7 +362,7 @@ Ebikes are typically 17 cents/min. Non-ebikes are free for members, up to 45 min
             
             api.fetchStations { stations in
                 
-                let categories = api.categorizeStations(stations: stations)
+                var categories = api.categorizeStations(stations: stations)
                 
                 let annotationsToAdd = categories.emptyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .empty, station: $0) }
                 + categories.ebikeOnlyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .ebikeOnly, station: $0)  }
@@ -445,6 +463,8 @@ struct StationAnnotation: Identifiable {
     var coordinate: CLLocationCoordinate2D
     var type: StationType
     var station: Station
+    var isSheetOpen = false
+    var walkingTime: TimeInterval? = nil
     
     enum StationType {
         case empty
