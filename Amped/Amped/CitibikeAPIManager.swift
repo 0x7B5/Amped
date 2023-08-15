@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Station: Decodable {
+public struct Station: Decodable {
     let stationId: String
     let stationName: String
     let location: Location

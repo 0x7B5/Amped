@@ -12,6 +12,8 @@ import SwiftUI
 struct StationInfo: View {
     
     var currentStation: Station
+    @State private var walkingTime: TimeInterval? = nil
+    @Binding var isStationSheetVisible: Bool
     
     var body: some View {
         VStack {
@@ -59,7 +61,7 @@ struct StationInfo: View {
                 }
             }
             Button {
-                openDirections()
+                openDirections(currentStation: currentStation)
             } label: {
                 Text("Get Directions").bold()
             }

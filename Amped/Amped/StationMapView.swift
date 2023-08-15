@@ -10,6 +10,39 @@ import MapKit
 import PartialSheet
 
 struct StationMapView: View {
+    
+    @State private var ebikeOnlyCount: Int = 0
+    @State private var emptyCount: Int = 0
+    
+    @State private var annotations: [StationAnnotation] = []
+    @State private var isSettingsSheetVisible: Bool = false
+    @State private var isStationSheetVisible: Bool = false
+    @State private var currentStation: Station = Station(stationId: "Null", stationName: "Null", location: Station.Location(lat: 40.7831, lng: -73.9712), totalBikesAvailable: 0, ebikesAvailable: 0, isOffline: true)
+    @State private var isInfoSheetVisible: Bool = false
+    @State private var showEmptyStations: Bool = true
+    
+    @State private var lastUpdateTime: Date? = nil
+
+    @State private var initialRegionSet = false
+    @State private var dataRefreshTimer: Timer? = nil
+    
+    @State private var isLoading: Bool = false
+    @StateObject private var locationManager = LocationManager()
+    @StateObject private var locationViewModel = LocationViewModel()
+    
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 40.7831, longitude: -73.9712),
+        span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+    )
+
+    var lastUpdateTimeString: String {
+        guard let lastUpdate = lastUpdateTime else { return "00:00" }
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        return formatter.string(from: lastUpdate)
+    }
+    
     var body: some View {
         ZStack {
             Map(coordinateRegion: $region, showsUserLocation: true, annotationItems: annotations) { stationAnnotation -> MapAnnotation in
@@ -26,9 +59,8 @@ struct StationMapView: View {
             }
             .onAppear(perform: {
                 loadData()
-                setupDataRefreshTimer()
+                dataRefreshTimer = setupDataRefreshTimer()
             })
-            .onDisappear(perform: invalidateDataRefreshTimer)
             .edgesIgnoringSafeArea(.all)
             
             if isLoading {
@@ -161,49 +193,63 @@ struct StationMapView: View {
             AppInfo()
         }
         .partialSheet(isPresented: $isSettingsSheetVisible) {
-            VStack {
-                Text("Settings")
-                    .font(.headline)
-                    .padding(.top)
-                
-                Toggle("Show Empty Stations", isOn: $showEmptyStations)
-                    .padding()
-                
-            }
-            .padding(.horizontal)
+            Settings(showEmptyStations: $showEmptyStations)
         }
         .partialSheet(isPresented: $isStationSheetVisible) {
-            StationInfo(currentStation: currentStation)
+            StationInfo(currentStation: currentStation, isStationSheetVisible: $isStationSheetVisible)
         }
     }
-}
-
-class LocationViewModel: ObservableObject {
-private var locationManager = CLLocationManager()
     
-func calculateWalkingTime(to destinationCoordinate: CLLocationCoordinate2D, completion: @escaping (TimeInterval?) -> Void) {
-        guard let userLocation = locationManager.location else {
-            completion(nil)
-            return
-        }
+    func loadData(silently: Bool = false) {
+        print("Loading data")
         
-        let destinationPlacemark = MKPlacemark(coordinate: destinationCoordinate)
-        let destinationItem = MKMapItem(placemark: destinationPlacemark)
-        
-        let request = MKDirections.Request()
-        request.source = MKMapItem(placemark: MKPlacemark(coordinate: userLocation.coordinate))
-        request.destination = destinationItem
-        request.transportType = .walking
-        
-        let directions = MKDirections(request: request)
-        directions.calculate { response, error in
-            guard let route = response?.routes.first else {
-                completion(nil)
-                return
+        DispatchQueue.global().async { // Perform the task on a background thread
+            
+            if !silently {
+                DispatchQueue.main.async {
+                    isLoading = true
+                }
             }
             
-            completion(route.expectedTravelTime)
+            let api = CitibikeAPI()
+            
+            api.fetchStations { stations in
+                
+                var categories = api.categorizeStations(stations: stations)
+                
+                let annotationsToAdd = categories.emptyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .empty, station: $0) }
+                + categories.ebikeOnlyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .ebikeOnly, station: $0)  }
+                
+                DispatchQueue.main.async { // Switching to main thread for UI updates
+                    if !silently {
+                        isLoading = false
+                    }
+                    
+                    annotations = annotationsToAdd
+                    ebikeOnlyCount = categories.ebikeOnlyStations.count
+                    emptyCount = categories.emptyStations.count
+                    self.lastUpdateTime = Date()
+                    
+                    // Uncomment if you need this:
+                    // if let userLocation = locationManager.location {
+                    //     updateRegion(to: userLocation.coordinate)
+                    // }
+                }
+            }
         }
+    }
+    
+    func updateRegion(to coordinate: CLLocationCoordinate2D) {
+        region.center = coordinate
+        region.span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    }
+    
+    public func setupDataRefreshTimer() -> Timer {
+        var dataRefreshTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
+            // Fetch the data silently
+            loadData(silently: true)
+        }
+        return dataRefreshTimer
     }
 }
 

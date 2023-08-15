@@ -7,12 +7,43 @@
 
 import Foundation
 import SwiftUI
+import CoreLocation
+import MapKit
 
-public func openDirections() {
+public func openDirections(currentStation: Station) {
     let destinationPlacemark = MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: currentStation.location.lat, longitude: currentStation.location.lng))
     let destinationItem = MKMapItem(placemark: destinationPlacemark)
             
     destinationItem.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
+}
+
+class LocationViewModel: ObservableObject {
+private var locationManager = CLLocationManager()
+    
+    func calculateWalkingTime(to destinationCoordinate: CLLocationCoordinate2D, completion: @escaping (TimeInterval?) -> Void) {
+        guard let userLocation = locationManager.location else {
+            completion(nil)
+            return
+        }
+        
+        let destinationPlacemark = MKPlacemark(coordinate: destinationCoordinate)
+        let destinationItem = MKMapItem(placemark: destinationPlacemark)
+        
+        let request = MKDirections.Request()
+        request.source = MKMapItem(placemark: MKPlacemark(coordinate: userLocation.coordinate))
+        request.destination = destinationItem
+        request.transportType = .walking
+        
+        let directions = MKDirections(request: request)
+        directions.calculate { response, error in
+            guard let route = response?.routes.first else {
+                completion(nil)
+                return
+            }
+            
+            completion(route.expectedTravelTime)
+        }
+    }
 }
 
 public func calculateWalkingTime() {
@@ -27,59 +58,9 @@ public func formatTime(_ time: TimeInterval) -> String {
     return formatter.string(from: time) ?? ""
 }
 
-public func setupDataRefreshTimer() {
-    dataRefreshTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
-        // Fetch the data silently
-        loadData(silently: true)
-    }
-}
 
-public func invalidateDataRefreshTimer() {
-    dataRefreshTimer?.invalidate()
-    dataRefreshTimer = nil
-}
+//public func invalidateDataRefreshTimer() {
+//    dataRefreshTimer?.invalidate()
+//    dataRefreshTimer = nil
+//}
 
-func loadData(silently: Bool = false) {
-    print("Loading data")
-    
-    DispatchQueue.global().async { // Perform the task on a background thread
-        
-        if !silently {
-            DispatchQueue.main.async {
-                isLoading = true
-            }
-        }
-        
-        let api = CitibikeAPI()
-        
-        api.fetchStations { stations in
-            
-            var categories = api.categorizeStations(stations: stations)
-            
-            let annotationsToAdd = categories.emptyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .empty, station: $0) }
-            + categories.ebikeOnlyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .ebikeOnly, station: $0)  }
-            
-            DispatchQueue.main.async { // Switching to main thread for UI updates
-                if !silently {
-                    isLoading = false
-                }
-                
-                annotations = annotationsToAdd
-                ebikeOnlyCount = categories.ebikeOnlyStations.count
-                emptyCount = categories.emptyStations.count
-                self.lastUpdateTime = Date()
-                
-                // Uncomment if you need this:
-                // if let userLocation = locationManager.location {
-                //     updateRegion(to: userLocation.coordinate)
-                // }
-            }
-        }
-    }
-}
-
-
-func updateRegion(to coordinate: CLLocationCoordinate2D) {
-    region.center = coordinate
-    region.span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-}
