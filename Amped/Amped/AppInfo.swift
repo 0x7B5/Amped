@@ -2,7 +2,7 @@
 //  AppInfo.swift
 //  Amped
 //
-//  Created by Kevin Choo on 8/15/23.
+//  Created by Kevin Choo & Vlad Munteanu & Vlad Munteanu on 8/15/23.
 //
 
 import Foundation

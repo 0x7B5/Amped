@@ -2,7 +2,7 @@
 //  StationMapView.swift
 //  Amped
 //
-//  Created by Kevin Choo on 8/14/23.
+//  Created by Kevin Choo & Vlad Munteanu on 8/14/23.
 //
 
 import SwiftUI
