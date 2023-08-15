@@ -16,10 +16,10 @@ struct StationMapView: View {
     
     @State private var walkingTime: TimeInterval? = nil
     @State private var isDataLoadingInProgress: Bool = false
-    private let uiUpdateSemaphore = DispatchSemaphore(value: 1)
 
     
     @State private var annotations: [StationAnnotation] = []
+    @State private var isAnySheetBeingInteracted: Bool = false
     @State private var isSettingsSheetVisible: Bool = false
     @State private var isStationSheetVisible: Bool = false
     @State private var currentStation: Station = Station(stationId: "Null", stationName: "Null", location: Station.Location(lat: 40.7831, lng: -73.9712), totalBikesAvailable: 0, ebikesAvailable: 0, isOffline: true)
@@ -194,20 +194,11 @@ struct StationMapView: View {
         .partialSheet(isPresented: $isInfoSheetVisible) {
             AppInfo()
         }
-        .onDisappear {
-            closePartialSheet()
-        }
         .partialSheet(isPresented: $isSettingsSheetVisible) {
             Settings(showEmptyStations: $showEmptyStations)
         }
-        .onDisappear {
-            closePartialSheet()
-        }
         .partialSheet(isPresented: $isStationSheetVisible) {
             StationInfo(currentStation: currentStation, walkingTime: $walkingTime, isStationSheetVisible: $isStationSheetVisible)
-        }
-        .onDisappear {
-            closePartialSheet()
         }
     }
     
@@ -228,13 +219,10 @@ struct StationMapView: View {
             isLoading = true
         }
 
-        // Ensure loadData isn't concurrently being accessed
-        uiUpdateSemaphore.wait()
-
         DispatchQueue.global().async {
             let api = CitibikeAPI()
             api.fetchStations { stations in
-                var categories = api.categorizeStations(stations: stations)
+                let categories = api.categorizeStations(stations: stations)
                 let annotationsToAdd = categories.emptyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .empty, station: $0) }
                 + categories.ebikeOnlyStations.map { StationAnnotation(coordinate: $0.location.toCLLocationCoordinate2D(), type: .ebikeOnly, station: $0) }
 
@@ -243,26 +231,14 @@ struct StationMapView: View {
                     let remaining = minimumLoadingDisplayDuration - elapsed
                     DispatchQueue.main.asyncAfter(deadline: .now() + remaining) {
                         self.updateUIAfterLoading(annotationsToAdd: annotationsToAdd, categories: categories, silently: silently)
-                        self.uiUpdateSemaphore.signal()
                     }
                 } else {
                     DispatchQueue.main.async {
                         self.updateUIAfterLoading(annotationsToAdd: annotationsToAdd, categories: categories, silently: silently)
-                        self.uiUpdateSemaphore.signal()
                     }
                 }
             }
         }
-    }
-    
-    func closePartialSheet() {
-        // Try to decrement the semaphore. If the current value is zero, this will block until the semaphore is incremented.
-        uiUpdateSemaphore.wait()
-
-        // You can include other cleanup tasks here if needed.
-
-        // Release the semaphore.
-        uiUpdateSemaphore.signal()
     }
     
     private func updateUIAfterLoading(annotationsToAdd: [StationAnnotation], categories: (emptyStations: [Station], ebikeOnlyStations: [Station]), silently: Bool) {
@@ -281,7 +257,7 @@ struct StationMapView: View {
     }
     
     public func setupDataRefreshTimer() -> Timer {
-        var dataRefreshTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
+        let dataRefreshTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
             // Fetch the data silently
             loadData(silently: true)
         }
