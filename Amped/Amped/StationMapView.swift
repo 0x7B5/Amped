@@ -115,17 +115,17 @@ struct StationMapView: View {
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color.blue)
-                                .frame(width: 20, height: 20)
+                            SmallPinIcon()
+                                .foregroundColor(.blue)
+                                .offset(y: 3)
                             Text("Ebikes Only: \(ebikeOnlyCount)")
                                 .font(.footnote)
                                 .foregroundColor(Color.black)
                         }
                         HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 20, height: 20)
+                            SmallPinIcon()
+                                .foregroundColor(.red)
+                                .offset(y: 3)
                             Text("Empty Docks: \(emptyCount)")
                                 .font(.footnote)
                                 .foregroundColor(Color.black)
