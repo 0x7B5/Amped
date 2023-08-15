@@ -23,6 +23,7 @@
 		CC97CD892A81F9C7008227D4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC97CD882A81F9C7008227D4 /* Assets.xcassets */; };
 		CC97CD8C2A81F9C7008227D4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC97CD8B2A81F9C7008227D4 /* Preview Assets.xcassets */; };
 		CC97CD932A820144008227D4 /* CitibikeAPIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC97CD922A820144008227D4 /* CitibikeAPIManager.swift */; };
+		CCB0364B2A8C2CAA002D9D4B /* SmallPinIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB0364A2A8C2CAA002D9D4B /* SmallPinIcon.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		CC97CD882A81F9C7008227D4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CC97CD8B2A81F9C7008227D4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CC97CD922A820144008227D4 /* CitibikeAPIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitibikeAPIManager.swift; sourceTree = "<group>"; };
+		CCB0364A2A8C2CAA002D9D4B /* SmallPinIcon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmallPinIcon.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +89,7 @@
 				CC97CD862A81F9C6008227D4 /* ContentView.swift */,
 				B13628C92A8C075A00E705C3 /* StationInfo.swift */,
 				B13628D02A8C0E6F00E705C3 /* Settings.swift */,
+				CCB0364A2A8C2CAA002D9D4B /* SmallPinIcon.swift */,
 				B13628CE2A8C095200E705C3 /* AppInfo.swift */,
 				B13628C52A8ACE8300E705C3 /* StationMapView.swift */,
 				B13628CB2A8C080800E705C3 /* Supporting Files */,
@@ -193,6 +196,7 @@
 				CC97CD932A820144008227D4 /* CitibikeAPIManager.swift in Sources */,
 				B13628CA2A8C075A00E705C3 /* StationInfo.swift in Sources */,
 				B13628C82A8C06EA00E705C3 /* PinIcon.swift in Sources */,
+				CCB0364B2A8C2CAA002D9D4B /* SmallPinIcon.swift in Sources */,
 				B13628C62A8ACE8300E705C3 /* StationMapView.swift in Sources */,
 				B13628CF2A8C095200E705C3 /* AppInfo.swift in Sources */,
 				B13628D12A8C0E6F00E705C3 /* Settings.swift in Sources */,
