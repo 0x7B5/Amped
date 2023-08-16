@@ -1,2 +1,3 @@
 config.py
 Amped/GoogleService-Info.plist
+__pycache__/

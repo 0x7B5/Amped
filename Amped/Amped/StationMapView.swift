@@ -22,7 +22,7 @@ struct StationMapView: View {
     @State private var isAnySheetBeingInteracted: Bool = false
     @State private var isSettingsSheetVisible: Bool = false
     @State private var isStationSheetVisible: Bool = false
-    @State private var currentStation: Station = Station(stationId: "Null", stationName: "Null", location: Station.Location(lat: 40.7831, lng: -73.9712), totalBikesAvailable: 0, ebikesAvailable: 0, isOffline: true)
+    @State private var currentStation: Station = Station(stationId: "Null", stationName: "", location: Station.Location(lat: 40.7831, lng: -73.9712), totalBikesAvailable: 0, ebikesAvailable: 0, isOffline: true)
     @State private var isInfoSheetVisible: Bool = false
     @State private var showEmptyStations: Bool = true
     
@@ -54,7 +54,16 @@ struct StationMapView: View {
                     if(stationAnnotation.station.ebikesAvailable > 0 || (showEmptyStations && stationAnnotation.station.ebikesAvailable == 0)) {
                         PinIcon(numEbikesAvailable: stationAnnotation.station.ebikesAvailable)
                             .onTapGesture {
-                                handleTap(for: stationAnnotation.station)
+                                currentStation = stationAnnotation.station
+                                
+                                print("\(currentStation) station")
+//                                handleTap(for: stationAnnotation.station)
+//                                
+//                                currentStation = station
+                                calculateWalkingTime(locationManager: locationManager.locationManager, to: CLLocationCoordinate2D(latitude: currentStation.location.lat, longitude: currentStation.location.lng)) { time in
+                                   walkingTime = time ?? 0
+                                 isStationSheetVisible = true
+                                }
                             }
                     }
                 }
@@ -191,14 +200,17 @@ struct StationMapView: View {
                 initialRegionSet = true
             }
         }
-        .partialSheet(isPresented: $isInfoSheetVisible) {
+        .sheet(isPresented: $isInfoSheetVisible) {
             AppInfo()
+                .presentationDetents([.fraction(0.7)])
         }
-        .partialSheet(isPresented: $isSettingsSheetVisible) {
+        .sheet(isPresented: $isSettingsSheetVisible) {
             Settings(showEmptyStations: $showEmptyStations)
+                .presentationDetents([.fraction(0.25)])
         }
-        .partialSheet(isPresented: $isStationSheetVisible) {
+        .sheet(isPresented: $isStationSheetVisible) {
             StationInfo(currentStation: currentStation, walkingTime: $walkingTime, isStationSheetVisible: $isStationSheetVisible)
+                .presentationDetents([.fraction(0.35)])
         }
     }
     
